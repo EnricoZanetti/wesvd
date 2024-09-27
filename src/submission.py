@@ -22,7 +22,6 @@ def distinct_words(corpus):
     corpus_words = []
     num_corpus_words = 0
 
-    # ### START CODE HERE ###
     # Flatten the corpus into a single list of words using a list comprehension
     all_words = [word for document in corpus for word in document]
 
@@ -34,7 +33,6 @@ def distinct_words(corpus):
 
     # Get the number of unique words
     num_corpus_words = len(corpus_words)
-    # ### END CODE HERE ###
 
     return corpus_words, num_corpus_words
 
@@ -60,8 +58,6 @@ def compute_co_occurrence_matrix(corpus, window_size=4):
     M = None
     word2Ind = {}
 
-    # ### START CODE HERE ###
-
     # Create a mapping from words to their indeces
     word2Ind = {word: idx for idx, word, in enumerate(words)}
 
@@ -83,8 +79,6 @@ def compute_co_occurrence_matrix(corpus, window_size=4):
                     # Increment the count for the co-occurrence
                     M[word2Ind[word], word2Ind[context_word]] += 1
 
-    # ### END CODE HERE ###
-
     return M, word2Ind
 
 def reduce_to_k_dim(M, k=2):
@@ -104,15 +98,11 @@ def reduce_to_k_dim(M, k=2):
     M_reduced = None
     print("Running Truncated SVD over %i words..." % (M.shape[0]))
 
-    # ### START CODE HERE ###
-
     # Initialize the TruncatedSVD model
     svd = TruncatedSVD(n_components=k, n_iter=n_iter, random_state=4355)
 
     # Fit the model to the co-occurrence matrix and transform it
     M_reduced = svd.fit_transform(M)
-
-    # ### END CODE HERE ###
 
     print("Done.")
     return M_reduced
