@@ -15,11 +15,11 @@ dependencies:
   - pip=24.2
   - tensorboard
   - pip:
-    - sentencepiece==0.2.0
-    - sacrebleu==2.4.3
-    - nltk==3.9.1
-    - timeout_decorator==0.5.0
-    - "--find-links https://download.pytorch.org/whl/torch_stable.html"
-    - torch==2.4.1; sys_platform != "linux" and sys_platform != "win32"
-    - "--find-links https://download.pytorch.org/whl/torch/"
-    - torch==2.4.1+cpu; sys_platform == "linux" or sys_platform == "win32"
+      - sentencepiece==0.2.0
+      - sacrebleu==2.4.3
+      - nltk==3.9.1
+      - timeout_decorator==0.5.0
+      - "--find-links https://download.pytorch.org/whl/torch_stable.html"
+      - torch==2.4.1; sys_platform != "linux" and sys_platform != "win32"
+      - "--find-links https://download.pytorch.org/whl/torch/"
+      - torch==2.4.1+cpu; sys_platform == "linux" or sys_platform == "win32"

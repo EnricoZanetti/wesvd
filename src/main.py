@@ -163,8 +163,6 @@ def plot_embeddings(m_reduced, word2ind, words, title='embeddings.png'):
 
     # Save the plot to the specified file
     plt.savefig(title, bbox_inches='tight', dpi=300)
-    print(f'Plot saved to {title}')
-
 
 def main(args):
     """
@@ -175,13 +173,21 @@ def main(args):
     args : Namespace
         Parsed command-line arguments.
     """
+    # Define the default output directory
+    base_dir = os.path.dirname(os.path.abspath(__file__))  # Base directory of the script
+    output_dir = os.path.join(base_dir, 'output')
+
+    # Create the output directory and subdirectories if they don't exist
+    embeddings_dir = os.path.join(output_dir, 'embeddings')
+    plots_dir = os.path.join(output_dir, 'plots')
+    os.makedirs(embeddings_dir, exist_ok=True)
+    os.makedirs(plots_dir, exist_ok=True)
+
     # Read the corpus
     if args.corpus_file:
-        # Implement reading from a file if provided
         with open(args.corpus_file) as f:
             corpus = [line.strip().split() for line in f]
     else:
-        # Use default corpus from utils
         corpus = read_corpus()
 
     # Compute the co-occurrence matrix
@@ -192,18 +198,19 @@ def main(args):
     m_reduced = reduce_to_k_dim(m_co_occurrence, args.k_dim)
     m_normalized = normalize_embeddings(m_reduced)
 
-    # Save the reduced embeddings if specified
-    if args.output_embeddings:
-        np.save(args.output_embeddings, m_normalized)
-        print(f'Saved embeddings to {args.output_embeddings}')
+    # Save embeddings
+    embeddings_path = os.path.join(embeddings_dir, args.output_embeddings)
+    np.save(embeddings_path, m_normalized)
+    print(f'Saved embeddings to {embeddings_path}')
 
-    # Plot embeddings if words are provided
+    # Plot embeddings
     if args.words_to_visualize:
+        plot_path = os.path.join(plots_dir, args.output_plot)
         words = args.words_to_visualize
-        plot_embeddings(m_normalized, word2ind, words, args.output_plot)
+        plot_embeddings(m_normalized, word2ind, words, plot_path)
+        print(f'Saved plot to {plot_path}')
     else:
         print('No words provided for visualization.')
-
 
 if __name__ == '__main__':
     # Set up argument parser
@@ -222,23 +229,30 @@ if __name__ == '__main__':
         default=4,
         help='Context window size for co-occurrence calculation.',
     )
-    parser.add_argument('--k_dim', type=int, default=2, help='Number of dimensions to reduce to.')
+    parser.add_argument(
+        '--k_dim',
+        type=int,
+        default=2,
+        help='Number of dimensions to reduce to.',
+    )
     parser.add_argument(
         '--output_embeddings',
         type=str,
         default='embeddings.npy',
-        help='Filename to save the reduced embeddings.',
+        help='Filename for the reduced embeddings (saved in output/embeddings/).',
     )
     parser.add_argument(
         '--output_plot',
         type=str,
         default='embeddings.png',
-        help='Filename to save the embeddings plot.',
+        help='Filename for the embeddings plot (saved in output/plots/).',
     )
     parser.add_argument(
-        '--words_to_visualize', nargs='*', default=None, help='List of words to visualize.'
+        '--words_to_visualize',
+        nargs='*',
+        default=None,
+        help='List of words to visualize.',
     )
-
     args = parser.parse_args()
     mpl.use('agg')  # Use 'agg' backend for plotting without GUI
     plt.rcParams['figure.figsize'] = [10, 5]
