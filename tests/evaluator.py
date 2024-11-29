@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 import unittest, random, sys, copy, argparse, inspect
-from graderUtil import graded, CourseTestRunner, GradedTestCase
+from tests.evaluation_utils import graded, CourseTestRunner, GradedTestCase
 import numpy as np
 import traceback
 
 # Import student submission
-import submission
+import main
 from utils import *
 
 #############################################
@@ -47,7 +47,7 @@ class Test_1(GradedTestCase):
     """1-0-basic:  Sanity check for distinct_words()"""
 
     test_corpus = toy_corpus()
-    test_corpus_words, num_corpus_words = submission.distinct_words(test_corpus)
+    test_corpus_words, num_corpus_words = main.distinct_words(test_corpus)
 
     ans_test_corpus_words = sorted(list(set(["START", "All", "ends", "that", "gold", "All's", "glitters", "isn't", "well", "END"])))
     ans_num_corpus_words = len(ans_test_corpus_words)
@@ -60,7 +60,7 @@ class Test_1(GradedTestCase):
     """1-1-basic:  Sanity check for compute_co_occurrence_matrix()"""
 
     test_corpus = toy_corpus()
-    M_test, word2Ind_test = submission.compute_co_occurrence_matrix(test_corpus, window_size=2)
+    M_test, word2Ind_test = main.compute_co_occurrence_matrix(test_corpus, window_size=2)
 
     M_test_ans, word2Ind_test_ans = toy_corpus_co_occurrence()
 
@@ -84,7 +84,7 @@ class Test_1(GradedTestCase):
     """1-2-basic:  Sanity check for reduce_to_k_dim()"""
 
     M_test_ans, word2Ind_test_ans = toy_corpus_co_occurrence()
-    M_test_reduced = submission.reduce_to_k_dim(M_test_ans, k=2)
+    M_test_reduced = main.reduce_to_k_dim(M_test_ans, k=2)
     self.assertSequenceEqual(M_test_reduced.shape, (10,2))
 
   @graded(is_hidden=True)
@@ -92,8 +92,8 @@ class Test_1(GradedTestCase):
     """1-3-hidden:  Test distinct_words() with full corpus."""
     corpus = read_corpus()
 
-    student_result, _ = submission.distinct_words(corpus.copy())
-    soln_result, _ = self.run_with_solution_if_possible(submission, lambda sub_or_sol:sub_or_sol.distinct_words(corpus.copy()))
+    student_result, _ = main.distinct_words(corpus.copy())
+    soln_result, _ = self.run_with_solution_if_possible(main, lambda sub_or_sol:sub_or_sol.distinct_words(corpus.copy()))
 
     self.assertEqual(student_result, soln_result)
 
@@ -102,8 +102,8 @@ class Test_1(GradedTestCase):
     """1-4-hidden:  Test compute_co_occurrence_matrix() with full corpus."""
     corpus = read_corpus()
     window_size = 4
-    student_matrix, student_dict = submission.compute_co_occurrence_matrix(corpus.copy(), window_size)
-    soln_matrix, solution_dict = self.run_with_solution_if_possible(submission, lambda sub_or_sol:sub_or_sol.compute_co_occurrence_matrix(corpus.copy(), window_size))
+    student_matrix, student_dict = main.compute_co_occurrence_matrix(corpus.copy(), window_size)
+    soln_matrix, solution_dict = self.run_with_solution_if_possible(main, lambda sub_or_sol:sub_or_sol.compute_co_occurrence_matrix(corpus.copy(), window_size))
 
     self.assertEqual(np.linalg.norm(student_matrix - soln_matrix), 0)
     self.assertEqual(solution_dict, student_dict)
@@ -117,9 +117,9 @@ class Test_1(GradedTestCase):
     x = 10*np.random.rand(50, 100) + 100
     k = 5
 
-    student_result = submission.reduce_to_k_dim(x.copy(), k)
+    student_result = main.reduce_to_k_dim(x.copy(), k)
 
-    soln_result = self.run_with_solution_if_possible(submission, lambda sub_or_sol: sub_or_sol.reduce_to_k_dim(x.copy(), k))
+    soln_result = self.run_with_solution_if_possible(main, lambda sub_or_sol: sub_or_sol.reduce_to_k_dim(x.copy(), k))
 
     self.assertTrue(np.allclose(student_result, soln_result, atol=1e-5))
 
