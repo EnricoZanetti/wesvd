@@ -9,10 +9,10 @@ import random
 import unittest
 
 import numpy as np
-from evaluation_utils import CustomTestCase, Test
 
 from src import main
-from utils import read_corpus
+from src.utils import read_corpus
+from tests.evaluation_utils import CustomTestCase, Test
 
 
 def toy_corpus():

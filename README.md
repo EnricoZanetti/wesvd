@@ -1,1 +1,1 @@
-
+# Generalized Word Embedding Generation using Co-occurrence Matrices and Truncated SVD

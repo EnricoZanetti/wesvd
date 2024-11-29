@@ -1,4 +1,4 @@
-name: XCS224N
+name: wesvd
 channels:
   - defaults
   - conda-forge

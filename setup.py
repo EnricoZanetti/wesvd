@@ -1,9 +1,7 @@
-# setup.py
-
 from setuptools import find_packages, setup
 
 setup(
-    name='xcs224n_a1',  # Package name
+    name='wesvd',  # Package name
     version='0.1.0',  # Version number
     packages=find_packages(),  # Automatically find packages
     python_requires='>=3.8,<3.9',  # Specify Python version requirement
