@@ -1,23 +1,35 @@
 #!/usr/bin/env python
 
-import sys
+# Ruff Settings
+# ruff: noqa: D103, PLR2004
+
 import os
-import numpy as np
+import sys
+
 import matplotlib
 import matplotlib.pyplot as plt
-from utils import *
-from sklearn.decomposition import TruncatedSVD
-from sklearn.decomposition import PCA
+import numpy as np
+from sklearn.decomposition import PCA, TruncatedSVD
+
+from utils import read_corpus
 
 sys.path.append(os.path.abspath(os.path.join('..')))
 
 def distinct_words(corpus):
-    """ Determine a list of distinct words for the corpus.
-        Params:
-            corpus (list of list of strings): corpus of documents
-        Return:
-            corpus_words (list of strings): list of distinct words across the corpus, sorted (using python 'sorted' function)
-            num_corpus_words (integer): number of distinct words across the corpus
+    """
+    Identify and counts the distinct words in a given corpus.
+
+    Parameters
+    ----------
+    corpus : list of list of str
+        Corpus of documents, where each document is a list of words.
+
+    Returns
+    -------
+    corpus_words : list of str
+        Sorted list of distinct words across the entire corpus.
+    num_corpus_words : int
+        Total number of distinct words across the corpus.
     """
     corpus_words = []
     num_corpus_words = 0
@@ -37,32 +49,35 @@ def distinct_words(corpus):
     return corpus_words, num_corpus_words
 
 def compute_co_occurrence_matrix(corpus, window_size=4):
-    """ Compute co-occurrence matrix for the given corpus and window_size (default of 4).
+    """
+    Compute the co-occurrence matrix for a given corpus and context window size.
 
-        Note: Each word in a document should be at the center of a window. Words near edges will have a smaller
-              number of co-occurring words.
+    Parameters
+    ----------
+    corpus : list of list of str
+        Corpus of documents, where each document is a list of words.
+    window_size : int, optional
+        Size of the context window for co-occurrence calculation. Default is 4.
 
-              For example, if we take the document "START All that glitters is not gold END" with window size of 4,
-              "All" will co-occur with "START", "that", "glitters", "is", and "not".
-
-        Params:
-            corpus (list of list of strings): corpus of documents
-            window_size (int): size of context window
-        Return:
-            M (numpy matrix of shape (number of unique words in the corpus , number of unique words in the corpus)):
-                Co-occurrence matrix of word counts.
-                The ordering of the words in the rows/columns should be the same as the ordering of the words given by the distinct_words function.
-            word2Ind (dict): dictionary that maps word to index (i.e. row/column number) for matrix M.
+    Returns
+    -------
+    m : numpy.ndarray
+        Co-occurrence matrix of shape (num_words, num_words), where num_words is the
+        number of unique words.
+        Each entry m[i, j] represents the count of word `j` occurring within the
+        context window of word `i`.
+    word2ind : dict
+        Dictionary mapping each word to its corresponding row/column index in the matrix.
     """
     words, num_words = distinct_words(corpus)
-    M = None
-    word2Ind = {}
+    m = None
+    word2ind = {}
 
     # Create a mapping from words to their indeces
-    word2Ind = {word: idx for idx, word, in enumerate(words)}
+    word2ind = {word: idx for idx, word, in enumerate(words)}
 
     # Initialize the co-occurrence matrix with zeros
-    M = np.zeros((num_words, num_words), dtype=np.int32)
+    m = np.zeros((num_words, num_words), dtype=np.int32)
 
     # Iterate over each document in the corpus
     for document in corpus:
@@ -77,35 +92,40 @@ def compute_co_occurrence_matrix(corpus, window_size=4):
                 if i != idx: # Exclude the current word
                     context_word = document[i]
                     # Increment the count for the co-occurrence
-                    M[word2Ind[word], word2Ind[context_word]] += 1
+                    m[word2ind[word], word2ind[context_word]] += 1
 
-    return M, word2Ind
+    return m, word2ind
 
-def reduce_to_k_dim(M, k=2):
-    """ Reduce a co-occurrence count matrix of dimensionality (num_corpus_words, num_corpus_words)
-        to a matrix of dimensionality (num_corpus_words, k) using the following SVD function from Scikit-Learn:
-            - http://scikit-learn.org/stable/modules/generated/sklearn.decomposition.TruncatedSVD.html
+def reduce_to_k_dim(m, k=2):
+    """
+    Reduce the dimensionality of a co-occurrence matrix to `k` dimensions using Truncated SVD.
 
-        Params:
-            M (numpy matrix of shape (number of unique words in the corpus , number of unique words in the corpus)): co-occurrence matrix of word counts
-            k (int): embedding size of each word after dimension reduction
-        Return:
-            M_reduced (numpy matrix of shape (number of unique words in the corpus, k)): matrix of k-dimensioal word embeddings.
-                    In terms of the SVD from math class, this actually returns U * S
+    Parameters
+    ----------
+    m : numpy.ndarray
+        Co-occurrence matrix of shape (num_words, num_words), where num_words is the number of unique words.
+    k : int, optional
+        Number of dimensions to reduce to. Default is 2.
+
+    Returns
+    -------
+    m_reduced : numpy.ndarray
+        Reduced matrix of shape (num_words, k), containing the k-dimensional word embeddings.
+        The result is the product of the first k left singular vectors and the diagonal matrix of the singular values.
     """
     np.random.seed(4355)
     n_iter = 10     # Use this parameter in your call to `TruncatedSVD`
-    M_reduced = None
-    print("Running Truncated SVD over %i words..." % (M.shape[0]))
+    m_reduced = None
+    print(f'Running Truncated SVD over {m.shape[0]} words...')
 
     # Initialize the TruncatedSVD model
     svd = TruncatedSVD(n_components=k, n_iter=n_iter, random_state=4355)
 
     # Fit the model to the co-occurrence matrix and transform it
-    M_reduced = svd.fit_transform(M)
+    m_reduced = svd.fit_transform(m)
 
     print("Done.")
-    return M_reduced
+    return m_reduced
 
 def main():
     matplotlib.use('agg')
@@ -114,12 +134,25 @@ def main():
     assert sys.version_info[0] == 3
     assert sys.version_info[1] >= 5
 
-    def plot_embeddings(M_reduced, word2Ind, words, title):
+    def plot_embeddings(m_reduced, word2ind, words, title):
+        """
+        Plot 2D word embeddings.
 
+        Parameters
+        ----------
+        m_reduced : numpy.ndarray
+            2D matrix containing reduced word embeddings.
+        word2ind : dict
+            Dictionary mapping words to their corresponding indices in m_reduced.
+        words : list of str
+            Words to be plotted.
+        title : str
+            File name to save the plot.
+        """
         for word in words:
-            idx = word2Ind[word]
-            x = M_reduced[idx, 0]
-            y = M_reduced[idx, 1]
+            idx = word2ind[word]
+            x = m_reduced[idx, 0]
+            y = m_reduced[idx, 1]
             plt.scatter(x, y, marker='x', color='red')
             plt.text(x, y, word, fontsize=9)
         plt.savefig(title)
@@ -127,14 +160,14 @@ def main():
     #Read in the corpus
     reuters_corpus = read_corpus()
 
-    M_co_occurrence, word2Ind_co_occurrence = compute_co_occurrence_matrix(reuters_corpus)
-    M_reduced_co_occurrence = reduce_to_k_dim(M_co_occurrence, k=2)
+    m_co_occurrence, word2ind_co_occurrence = compute_co_occurrence_matrix(reuters_corpus)
+    m_reduced_co_occurrence = reduce_to_k_dim(m_co_occurrence, k=2)
     # Rescale (normalize) the rows to make them each of unit-length
-    M_lengths = np.linalg.norm(M_reduced_co_occurrence, axis=1)
-    M_normalized = M_reduced_co_occurrence / M_lengths[:, np.newaxis] # broadcasting
+    m_lengths = np.linalg.norm(m_reduced_co_occurrence, axis=1)
+    m_normalized = m_reduced_co_occurrence / m_lengths[:, np.newaxis] # broadcasting
 
     words = ['barrels', 'bpd', 'ecuador', 'energy', 'industry', 'kuwait', 'oil', 'output', 'petroleum', 'venezuela']
-    plot_embeddings(M_normalized, word2Ind_co_occurrence, words, 'co_occurrence_embeddings_(soln).png')
+    plot_embeddings(m_normalized, word2ind_co_occurrence, words, 'co_occurrence_embeddings_(soln).png')
 
 if __name__ == "__main__":
     main()
