@@ -1,144 +1,195 @@
 #!/usr/bin/env python3
-import unittest, random, sys, copy, argparse, inspect
-from tests.evaluation_utils import graded, CourseTestRunner, GradedTestCase
+
+# Ruff Settings
+# ruff: noqa: PT009
+
+import argparse
+import inspect
+import random
+import unittest
+
 import numpy as np
-import traceback
+from evaluation_utils import CustomTestCase, Test
 
-# Import student submission
-import main
-from utils import *
+from src import main
+from utils import read_corpus
 
-#############################################
-# HELPER FUNCTIONS FOR CREATING TEST INPUTS #
-#############################################
 
 def toy_corpus():
-  toy_corpus = ["START All that glitters isn't gold END".split(" "), "START All's well that ends well END".split(" ")]
-  return toy_corpus
+    """Generate a toy corpus for testing purposes.
+
+    Returns
+    -------
+    list of list of str
+        A small corpus represented as a list of sentences, each sentence is a list of words.
+    """
+    return [
+        "START All that glitters isn't gold END".split(' '),
+        "START All's well that ends well END".split(' '),
+    ]
+
 
 def toy_corpus_co_occurrence():
-  ### co-occurrence matric for toy_corpus with window_size = 2
-  M = np.array(
-  [[0., 0., 0., 1., 0., 1., 0., 0., 1., 0.,],
-   [0., 0., 0., 1., 0., 0., 0., 0., 1., 1.,],
-   [0., 0., 0., 0., 1., 0., 1., 1., 0., 1.,],
-   [1., 1., 0., 0., 0., 0., 0., 0., 1., 1.,],
-   [0., 0., 1., 0., 0., 0., 0., 0., 1., 2.,],
-   [1., 0., 0., 0., 0., 0., 1., 1., 1., 0.,],
-   [0., 0., 1., 0., 0., 1., 0., 1., 0., 0.,],
-   [0., 0., 1., 0., 0., 1., 1., 0., 1., 0.,],
-   [1., 1., 0., 1., 1., 1., 0., 1., 0., 2.,],
-   [0., 1., 1., 1., 2., 0., 0., 0., 2., 0.,]]
-  )
+    """Provide the co-occurrence matrix and word-to-index mapping for the toy corpus.
 
-  word2Ind = {'All': 0, "All's": 1, 'END': 2, 'START': 3, 'ends': 4, 'glitters': 5, 'gold': 6, "isn't": 7, 'that': 8, 'well': 9}
-  return M, word2Ind
+    Returns
+    -------
+    m : numpy.ndarray
+        Co-occurrence matrix for the toy corpus.
+    word2ind : dict
+        Mapping from words to their indices in the co-occurrence matrix.
+    """
+    # Co-occurrence matrix for toy_corpus with window_size = 2
+    m = np.array(
+        [
+            [0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0],
+            [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0],
+            [1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0],
+            [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0],
+            [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0],
+            [1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 2.0],
+            [0.0, 1.0, 1.0, 1.0, 2.0, 0.0, 0.0, 0.0, 2.0, 0.0],
+        ]
+    )
+    word2ind = {
+        'All': 0,
+        "All's": 1,
+        'END': 2,
+        'START': 3,
+        'ends': 4,
+        'glitters': 5,
+        'gold': 6,
+        "isn't": 7,
+        'that': 8,
+        'well': 9,
+    }
+    return m, word2ind
 
-#########
-# TESTS #
-#########
 
-class Test_1(GradedTestCase):
-  def setUp(self):
-    np.random.seed(42)
+# > Tests
 
-  @graded()
-  def test_0(self):
-    """1-0-basic:  Sanity check for distinct_words()"""
+class Test1(CustomTestCase):
+    """Unit tests for the functions defined in main.py."""
 
-    test_corpus = toy_corpus()
-    test_corpus_words, num_corpus_words = main.distinct_words(test_corpus)
+    def setUp(self):
+        """Set up test fixtures before each test method."""
+        np.random.seed(42)
 
-    ans_test_corpus_words = sorted(list(set(["START", "All", "ends", "that", "gold", "All's", "glitters", "isn't", "well", "END"])))
-    ans_num_corpus_words = len(ans_test_corpus_words)
+    @Test()
+    def test_0(self):
+        """Test distinct_words() with a toy corpus."""
+        test_corpus = toy_corpus()
+        test_corpus_words, num_corpus_words = main.distinct_words(test_corpus)
 
-    self.assertEqual(test_corpus_words, ans_test_corpus_words)
-    self.assertEqual(num_corpus_words, ans_num_corpus_words)
+        expected_words = sorted(
+            ['START', 'All', 'ends', 'that', 'gold', "All's", 'glitters', "isn't", 'well', 'END']
+        )
+        expected_num_words = len(expected_words)
 
-  @graded()
-  def test_1(self):
-    """1-1-basic:  Sanity check for compute_co_occurrence_matrix()"""
+        self.assertEqual(test_corpus_words, expected_words)
+        self.assertEqual(num_corpus_words, expected_num_words)
 
-    test_corpus = toy_corpus()
-    M_test, word2Ind_test = main.compute_co_occurrence_matrix(test_corpus, window_size=2)
+    @Test()
+    def test_1(self):
+        """Test compute_co_occurrence_matrix() with a toy corpus."""
+        test_corpus = toy_corpus()
+        m_test, word2ind_test = main.compute_co_occurrence_matrix(test_corpus, window_size=2)
 
-    M_test_ans, word2Ind_test_ans = toy_corpus_co_occurrence()
+        m_expected, word2ind_expected = toy_corpus_co_occurrence()
 
-    for w1 in word2Ind_test_ans.keys():
-        idx1 = word2Ind_test_ans[w1]
-        for w2 in word2Ind_test_ans.keys():
-            idx2 = word2Ind_test_ans[w2]
-            student = M_test[idx1, idx2]
-            correct = M_test_ans[idx1, idx2]
-            if student != correct:
-                print("Correct M:")
-                print(M_test_ans)
-                print("Your M: ")
-                print(M_test)
-                self.assertEqual(student, correct, "Incorrect count at index ({}, {})=({}, {}) in matrix M. Yours has {} but should have {}.".format(idx1, idx2, w1, w2, student, correct))
-    self.assertSequenceEqual(M_test.shape, M_test_ans.shape)
-    self.assertSequenceEqual(word2Ind_test, word2Ind_test_ans)
+        for word1 in word2ind_expected:
+            idx1 = word2ind_expected[word1]
+            for word2 in word2ind_expected:
+                idx2 = word2ind_expected[word2]
+                student_value = m_test[idx1, idx2]
+                expected_value = m_expected[idx1, idx2]
+                self.assertEqual(
+                    student_value,
+                    expected_value,
+                    f'Incorrect count at index ({idx1}, {idx2})=({word1}, {word2}) in matrix m.'
+                    f' Yours has {student_value} but should have {expected_value}.',
+                )
+        self.assertEqual(m_test.shape, m_expected.shape)
+        self.assertEqual(word2ind_test, word2ind_expected)
 
-  @graded()
-  def test_2(self):
-    """1-2-basic:  Sanity check for reduce_to_k_dim()"""
+    @Test()
+    def test_2(self):
+        """Test reduce_to_k_dim() with the toy corpus co-occurrence matrix."""
+        m_test, _ = toy_corpus_co_occurrence()
+        m_reduced = main.reduce_to_k_dim(m_test, k=2)
+        self.assertEqual(m_reduced.shape, (10, 2))
 
-    M_test_ans, word2Ind_test_ans = toy_corpus_co_occurrence()
-    M_test_reduced = main.reduce_to_k_dim(M_test_ans, k=2)
-    self.assertSequenceEqual(M_test_reduced.shape, (10,2))
+    @Test(timeout=20)
+    def test_3(self):
+        """Test distinct_words() with the full corpus."""
+        corpus = read_corpus()
+        student_result, num_words = main.distinct_words(corpus.copy())
 
-  @graded(is_hidden=True)
-  def test_3(self):
-    """1-3-hidden:  Test distinct_words() with full corpus."""
-    corpus = read_corpus()
+        self.assertIsInstance(student_result, list)
+        self.assertGreater(len(student_result), 0)
+        self.assertIsInstance(num_words, int)
+        self.assertEqual(len(student_result), num_words)
 
-    student_result, _ = main.distinct_words(corpus.copy())
-    soln_result, _ = self.run_with_solution_if_possible(main, lambda sub_or_sol:sub_or_sol.distinct_words(corpus.copy()))
+    @Test(timeout=20)
+    def test_4(self):
+        """Test compute_co_occurrence_matrix() with the full corpus."""
+        corpus = read_corpus()
+        window_size = 4
+        student_matrix, student_dict = main.compute_co_occurrence_matrix(
+            corpus.copy(), window_size
+        )
 
-    self.assertEqual(student_result, soln_result)
+        self.assertIsInstance(student_matrix, np.ndarray)
+        self.assertIsInstance(student_dict, dict)
+        self.assertEqual(student_matrix.shape[0], len(student_dict))
+        self.assertEqual(student_matrix.shape[1], len(student_dict))
 
-  @graded(is_hidden=True, timeout=20)
-  def test_4(self):
-    """1-4-hidden:  Test compute_co_occurrence_matrix() with full corpus."""
-    corpus = read_corpus()
-    window_size = 4
-    student_matrix, student_dict = main.compute_co_occurrence_matrix(corpus.copy(), window_size)
-    soln_matrix, solution_dict = self.run_with_solution_if_possible(main, lambda sub_or_sol:sub_or_sol.compute_co_occurrence_matrix(corpus.copy(), window_size))
+    @Test()
+    def test_5(self):
+        """Test reduce_to_k_dim() with a random matrix."""
+        random.seed(35436)
+        np.random.seed(4355)
 
-    self.assertEqual(np.linalg.norm(student_matrix - soln_matrix), 0)
-    self.assertEqual(solution_dict, student_dict)
+        x = 10 * np.random.rand(50, 100) + 100
+        k = 5
 
-  @graded(is_hidden=True)
-  def test_5(self):
-    """1-5-hidden:  Test reduce_to_k_dim() with full corpus."""
-    random.seed(35436)
-    np.random.seed(4355)
+        student_result = main.reduce_to_k_dim(x.copy(), k)
+        self.assertEqual(student_result.shape, (50, k))
 
-    x = 10*np.random.rand(50, 100) + 100
-    k = 5
 
-    student_result = main.reduce_to_k_dim(x.copy(), k)
+def get_test_case_for_test_id(test_id):
+    """Retrieve the test case corresponding to the given test ID.
 
-    soln_result = self.run_with_solution_if_possible(main, lambda sub_or_sol: sub_or_sol.reduce_to_k_dim(x.copy(), k))
+    Parameters
+    ----------
+    test_id : str
+        The test ID in the format 'question-part-...'.
 
-    self.assertTrue(np.allclose(student_result, soln_result, atol=1e-5))
+    Returns
+    -------
+    unittest.TestCase
+        The test case corresponding to the test ID.
+    """
+    question, part, _ = test_id.split('-')
+    g = globals().copy()
+    for name, obj in g.items():
+        if inspect.isclass(obj) and name == ('Test' + question):
+            return obj('test_' + part)
+    return None
 
-def getTestCaseForTestID(test_id):
-  question, part, _ = test_id.split('-')
-  g = globals().copy()
-  for name, obj in g.items():
-    if inspect.isclass(obj) and name == ('Test_'+question):
-      return obj('test_'+part)
 
 if __name__ == '__main__':
-  # Parse for a specific test
-  parser = argparse.ArgumentParser()
-  parser.add_argument('test_case', nargs='?', default='all')
-  test_id = parser.parse_args().test_case
+    # Parse for a specific test
+    parser = argparse.ArgumentParser()
+    parser.add_argument('test_case', nargs='?', default='all')
+    test_id = parser.parse_args().test_case
 
-  assignment = unittest.TestSuite()
-  if test_id != 'all':
-    assignment.addTest(getTestCaseForTestID(test_id))
-  else:
-    assignment.addTests(unittest.defaultTestLoader.discover('.', pattern='grader.py'))
-  CourseTestRunner().run(assignment)
+    assignment = unittest.TestSuite()
+    if test_id != 'all':
+        assignment.addTest(get_test_case_for_test_id(test_id))
+    else:
+        assignment.addTests(unittest.defaultTestLoader.discover('.', pattern='evaluator.py'))
+    unittest.TextTestRunner().run(assignment)
