@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 
 # Ruff Settings
-# ruff: noqa: D103, PLR2004
+# ruff: noqa: D103, PLR2004, PTH118, PTH100, S101
 
 import os
 import sys
 
-import matplotlib
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.decomposition import PCA, TruncatedSVD
+from sklearn.decomposition import TruncatedSVD
 
 from utils import read_corpus
 
@@ -89,7 +89,7 @@ def compute_co_occurrence_matrix(corpus, window_size=4):
             end = min(doc_length - 1, idx + window_size)
             # Iterate over each position in teh context window
             for i in range(start, end + 1):
-                if i != idx: # Exclude the current word
+                if i != idx:
                     context_word = document[i]
                     # Increment the count for the co-occurrence
                     m[word2ind[word], word2ind[context_word]] += 1
@@ -103,7 +103,8 @@ def reduce_to_k_dim(m, k=2):
     Parameters
     ----------
     m : numpy.ndarray
-        Co-occurrence matrix of shape (num_words, num_words), where num_words is the number of unique words.
+        Co-occurrence matrix of shape (num_words, num_words), where num_words is
+        the number of unique words.
     k : int, optional
         Number of dimensions to reduce to. Default is 2.
 
@@ -111,10 +112,11 @@ def reduce_to_k_dim(m, k=2):
     -------
     m_reduced : numpy.ndarray
         Reduced matrix of shape (num_words, k), containing the k-dimensional word embeddings.
-        The result is the product of the first k left singular vectors and the diagonal matrix of the singular values.
+        The result is the product of the first k left singular vectors and the diagonal matrix
+        of the singular values.
     """
     np.random.seed(4355)
-    n_iter = 10     # Use this parameter in your call to `TruncatedSVD`
+    n_iter = 10
     m_reduced = None
     print(f'Running Truncated SVD over {m.shape[0]} words...')
 
@@ -128,7 +130,7 @@ def reduce_to_k_dim(m, k=2):
     return m_reduced
 
 def main():
-    matplotlib.use('agg')
+    mpl.use('agg')
     plt.rcParams['figure.figsize'] = [10, 5]
 
     assert sys.version_info[0] == 3
@@ -164,10 +166,12 @@ def main():
     m_reduced_co_occurrence = reduce_to_k_dim(m_co_occurrence, k=2)
     # Rescale (normalize) the rows to make them each of unit-length
     m_lengths = np.linalg.norm(m_reduced_co_occurrence, axis=1)
-    m_normalized = m_reduced_co_occurrence / m_lengths[:, np.newaxis] # broadcasting
+    m_normalized = m_reduced_co_occurrence / m_lengths[:, np.newaxis]
 
-    words = ['barrels', 'bpd', 'ecuador', 'energy', 'industry', 'kuwait', 'oil', 'output', 'petroleum', 'venezuela']
-    plot_embeddings(m_normalized, word2ind_co_occurrence, words, 'co_occurrence_embeddings_(soln).png')
+    words = ['barrels', 'bpd', 'ecuador', 'energy', 'industry',
+             'kuwait', 'oil', 'output', 'petroleum', 'venezuela']
+    plot_embeddings(m_normalized, word2ind_co_occurrence,
+                    words, 'co_occurrence_embeddings_(soln).png')
 
 if __name__ == "__main__":
     main()
