@@ -113,7 +113,6 @@ def normalize_embeddings(m_reduced):
     row_norms = np.linalg.norm(m_reduced, axis=1, keepdims=True)
     return m_reduced / row_norms
 
-
 def plot_embeddings(m_reduced, word2ind, words, title='embeddings.png'):
     """
     Plot 2D word embeddings with improved label placement and associations.
@@ -129,6 +128,10 @@ def plot_embeddings(m_reduced, word2ind, words, title='embeddings.png'):
     title : str
         File name to save the plot.
     """
+    # Create directories if they don't exist
+    output_dir = os.path.join('src', 'output', 'plots')
+    os.makedirs(output_dir, exist_ok=True)
+    
     plt.figure(figsize=(12, 12))
     ax = plt.gca()
 
@@ -137,7 +140,7 @@ def plot_embeddings(m_reduced, word2ind, words, title='embeddings.png'):
         if word in word2ind:
             idx = word2ind[word]
             x, y = m_reduced[idx, 0], m_reduced[idx, 1]
-            plt.scatter(x, y, marker='x', color='red', zorder=2)
+            plt.scatter(x, y, marker='x', zorder=2)
 
             # Label directly next to the point
             plt.annotate(
@@ -161,8 +164,10 @@ def plot_embeddings(m_reduced, word2ind, words, title='embeddings.png'):
     # Adjust plot margins to prevent labels from being cropped
     plt.margins(0.1)
 
-    # Save the plot to the specified file
-    plt.savefig(title, bbox_inches='tight', dpi=300)
+    # Save the plot to the specified directory
+    save_path = os.path.join(output_dir, title)
+    plt.savefig(save_path, bbox_inches='tight', dpi=300)
+    plt.close()
 
 def main(args):
     """
