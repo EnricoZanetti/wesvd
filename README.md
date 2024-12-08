@@ -160,4 +160,8 @@ This project is licensed under the MIT License. See the LICENSE file for details
 
 ## Acknowledgments
 
-This project was inspired by [Natural Language Processing with Deep Learning](https://online.stanford.edu/courses/xcs224n-natural-language-processing-deep-learning) course provided by Stanford University and aims to provide an easy-to-use framework for creating and visualizing custom word embeddings.
+This project was inspired by [Natural Language Processing with Deep Learning](https://online.stanford.edu/courses/xcs224n-natural-language-processing-deep-learning) course provided by Stanford University.
+
+## Contacts
+
+- LinkedIn: [Enrico Zanetti](https://www.linkedin.com/in/enrico-zanetti/)
