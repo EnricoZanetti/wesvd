@@ -113,6 +113,7 @@ def normalize_embeddings(m_reduced):
     row_norms = np.linalg.norm(m_reduced, axis=1, keepdims=True)
     return m_reduced / row_norms
 
+
 def plot_embeddings(m_reduced, word2ind, words, title='embeddings.png'):
     """
     Plot 2D word embeddings with improved label placement and associations.
@@ -131,7 +132,7 @@ def plot_embeddings(m_reduced, word2ind, words, title='embeddings.png'):
     # Create directories if they don't exist
     output_dir = os.path.join('src', 'output', 'plots')
     os.makedirs(output_dir, exist_ok=True)
-    
+
     plt.figure(figsize=(12, 12))
     ax = plt.gca()
 
@@ -168,6 +169,7 @@ def plot_embeddings(m_reduced, word2ind, words, title='embeddings.png'):
     save_path = os.path.join(output_dir, title)
     plt.savefig(save_path, bbox_inches='tight', dpi=300)
     plt.close()
+
 
 def main(args):
     """
@@ -216,6 +218,7 @@ def main(args):
         print(f'Saved plot to {plot_path}')
     else:
         print('No words provided for visualization.')
+
 
 if __name__ == '__main__':
     # Set up argument parser
