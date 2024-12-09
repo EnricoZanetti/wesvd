@@ -1,4 +1,4 @@
-# Word Embedding Co-Occurrence with SVD (wesvd)
+# wesvd: Word Embedding Co-Occurrence with SVD
 
 `wesvd` is a Python package designed to generate **word embeddings** from a given text corpus using **co-occurrence matrices** and dimensionality reduction via **Truncated SVD (Singular Value Decomposition)**. This package offers an efficient and flexible way to analyze relationships between words in a corpus based on their contextual usage, enabling downstream tasks such as semantic analysis, clustering, or visualization.
 
